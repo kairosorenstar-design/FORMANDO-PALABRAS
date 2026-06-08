@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FORMANDO PALABRAS</title>
+
+  <!-- Security Headers -->
+  <meta http-equiv="X-Content-Type-Options"  content="nosniff" />
+  <meta http-equiv="X-Frame-Options"         content="DENY" />
+  <meta http-equiv="Referrer-Policy"         content="strict-origin-when-cross-origin" />
+  <meta http-equiv="Permissions-Policy"      content="camera=(), microphone=(), geolocation=()" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self' https://*.supabase.co;
+             script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com;
+             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+             font-src 'self' https://fonts.gstatic.com;
+             connect-src 'self' https://*.supabase.co;
+             img-src 'self' data:;" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/wait.css" />
+</head>
+<body>
+
+<!-- ── AMBIENT ───────────────────────────────────────────── -->
+<div class="ambient" aria-hidden="true">
+  <div class="ambient-blob ambient-blob-1"></div>
+  <div class="ambient-blob ambient-blob-2"></div>
+  <div class="ambient-blob ambient-blob-3"></div>
+</div>
+
+<!-- ── GLOBALS ───────────────────────────────────────────── -->
+<div class="loader-overlay" id="loader" aria-label="Cargando">
+  <div class="loader-logo">FP</div>
+  <div class="loader-ring"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE · ACCESO  (Login + Register en una misma pantalla)
+═══════════════════════════════════════════════════════ -->
+<div class="page active" id="page-auth">
+  <div class="auth-wrap">
+
+    <!-- Brand -->
+    <div class="auth-brand">
+      <div class="auth-brand-logo">FORMANDO PALABRAS</div>
+      <div class="auth-brand-tag">Cada combinación es única &bull; 456,976 posibles</div>
+    </div>
+
+    <!-- Card container — dos paneles que se deslizan -->
+    <div class="auth-card">
+
+      <!-- Línea top decorativa -->
+      <div class="auth-card-topline"></div>
+
+      <!-- Tab switcher -->
+      <div class="auth-tabs" role="tablist">
+        <button class="auth-tab active" id="tab-login"
+                role="tab" aria-selected="true" aria-controls="panel-login">
+          Iniciar sesión
+        </button>
+        <button class="auth-tab" id="tab-register"
+                role="tab" aria-selected="false" aria-controls="panel-register">
+          Registrarse
+        </button>
+        <div class="auth-tab-indicator" id="tab-indicator"></div>
+      </div>
+
+      <!-- Panel wrapper con deslizamiento -->
+      <div class="auth-panels-wrapper">
+        <div class="auth-panels-track" id="auth-track">
+
+          <!-- PANEL: INICIAR SESIÓN -->
+          <div class="auth-panel" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+            <p class="auth-panel-sub">Ingresa el correo con el que te registraste y accede a tu cuenta.</p>
+
+            <div class="form-group">
+              <label class="form-label" for="login-email">Correo electrónico</label>
+              <input class="form-input" type="email" id="login-email"
+                     placeholder="tu@correo.com" autocomplete="email" />
+              <div class="error-msg" id="login-email-error">Ingresa un correo válido.</div>
+            </div>
+
+            <button class="btn-primary" id="btn-login">Entrar</button>
+            <div class="error-msg" id="login-error" style="margin-top:.8rem;"></div>
+          </div>
+
+          <!-- PANEL: REGISTRARSE -->
+          <div class="auth-panel" id="panel-register" role="tabpanel" aria-labelledby="tab-register">
+            <p class="auth-panel-sub">Crea tu cuenta con un correo y el nombre con el que quieres aparecer.</p>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-email">Correo electrónico</label>
+              <input class="form-input" type="email" id="reg-email"
+                     placeholder="tu@correo.com" autocomplete="email" />
+              <div class="error-msg" id="reg-email-error">Ingresa un correo válido.</div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="reg-name">¿Cómo quieres aparecer?</label>
+              <input class="form-input" type="text" id="reg-name"
+                     placeholder="Tu nombre o apodo" maxlength="30" autocomplete="nickname" />
+              <div class="error-msg" id="reg-name-error">El nombre no puede estar vacío.</div>
+            </div>
+
+            <button class="btn-primary" id="btn-register">Crear cuenta</button>
+            <div class="error-msg" id="register-error" style="margin-top:.8rem;"></div>
+          </div>
+
+        </div><!-- /auth-panels-track -->
+      </div><!-- /auth-panels-wrapper -->
+
+    </div><!-- /auth-card -->
+  </div><!-- /auth-wrap -->
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE · PRINCIPAL
+═══════════════════════════════════════════════════════ -->
+<div class="page" id="page-main">
+
+  <nav class="nav">
+    <div class="nav-logo">FORMANDO PALABRAS</div>
+    <div class="nav-right">
+      <div class="nav-pill">
+        <div class="nav-pill-dot" aria-hidden="true"></div>
+        <div class="nav-pill-label">Referidos</div>
+        <div class="nav-pill-val" id="referral-count-num">0</div>
+      </div>
+      <div class="nav-user">Hola, <strong id="display-username"></strong></div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-eyebrow">Tu combinación del día</div>
+    <div class="hero-title">PRESIONA Y DESCUBRE<br /><em>TU PALABRA</em></div>
+  </section>
+
+  <div class="letter-stage">
+    <div class="letter-boxes" aria-label="Cuadros de letras">
+      <div class="letter-box" id="box-0" aria-live="polite">?</div>
+      <div class="letter-box" id="box-1" aria-live="polite">?</div>
+      <div class="letter-box" id="box-2" aria-live="polite">?</div>
+      <div class="letter-box" id="box-3" aria-live="polite">?</div>
+    </div>
+    <button class="btn-form" id="btn-form-word"><span>Formar Palabra</span></button>
+  </div>
+
+  <div class="dashboard">
+
+    <!-- Referral — ancho completo -->
+    <div class="dash-card dash-card-referral">
+      <div class="card-header">
+        <div class="card-title">Tu enlace y código de referido</div>
+        <div class="card-badge">Solo lectura</div>
+      </div>
+      <div class="ref-fields">
+        <div class="ref-field-group">
+          <div class="ref-field-label">Enlace de referido</div>
+          <div class="ref-field-row">
+            <div class="ref-field-val" id="ref-link" title="Clic para copiar">Cargando...</div>
+            <button class="btn-copy" id="btn-copy-link">Copiar</button>
+          </div>
+        </div>
+        <div class="ref-field-group">
+          <div class="ref-field-label">Código de referido</div>
+          <div class="ref-field-row">
+            <div class="ref-field-val" id="ref-code" title="Clic para copiar">———</div>
+            <button class="btn-copy" id="btn-copy-code">Copiar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Referidos -->
+    <div class="dash-card">
+      <div class="card-header">
+        <div class="card-title">Tus referidos</div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-big" id="stat-referral-big">0</div>
+        <div class="stat-label">
+          <strong>Personas referidas</strong>
+          que se registraron con tu enlace
+        </div>
+      </div>
+    </div>
+
+    <!-- Historial -->
+    <div class="dash-card">
+      <div class="card-header">
+        <div class="card-title">Historial global de palabras</div>
+        <div class="card-badge" id="words-count-badge">0 formadas</div>
+      </div>
+      <div class="words-grid" id="words-grid">
+        <span class="words-empty">Aún no hay combinaciones registradas.</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PAGE · ESPERA
+═══════════════════════════════════════════════════════ -->
+<div class="page" id="page-wait">
+  <div class="wait-inner">
+    <div class="wait-steps" id="wait-steps"></div>
+
+    <div class="wait-headline">
+      <div class="wait-headline-top" id="wait-step-label">Paso 1 de 5</div>
+      <div class="wait-headline-main">GENERANDO<br /><em>TU COMBINACIÓN</em></div>
+    </div>
+
+    <div class="ring-wrap" role="timer" aria-label="Temporizador">
+      <svg width="180" height="180" viewBox="0 0 180 180" aria-hidden="true">
+        <circle class="ring-track" cx="90" cy="90" r="80"/>
+        <circle class="ring-fill"  cx="90" cy="90" r="80" id="ring-fill"/>
+      </svg>
+      <div class="ring-num">
+        <div class="ring-num-val" id="ring-num">11</div>
+        <div class="ring-num-unit">seg</div>
+      </div>
+    </div>
+
+    <div class="wait-bar">
+      <div class="wait-bar-fill" id="wait-bar-fill"></div>
+    </div>
+
+    <div class="wait-status" id="wait-status">procesando · por favor espera</div>
+  </div>
+</div>
+
+<!-- ── SCRIPTS ────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
