@@ -1,19 +1,17 @@
 /* ═══════════════════════════════════════════════
-   MAIN — App State · UI Helpers · Init
+   MAIN — Estado · UI · Init
    js/main.js
 ═══════════════════════════════════════════════ */
 
-/* ── App state ──────────────────────────────── */
+/* ── Estado ─────────────────────────────────── */
 let _currentUser = null;
 
-function setCurrentUser(user) {
-  _currentUser = user;
-  localStorage.setItem('fp_user', JSON.stringify(user));
+function setCurrentUser(u) {
+  _currentUser = u;
+  localStorage.setItem('fp_user', JSON.stringify(u));
 }
 
-function getCurrentUser() {
-  return _currentUser;
-}
+function getCurrentUser() { return _currentUser; }
 
 /* ── UI helpers ─────────────────────────────── */
 function showPage(id) {
@@ -29,7 +27,7 @@ function showLoader(v) {
 function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = 'toast show ' + type;
+  t.className   = 'toast show ' + type;
   setTimeout(() => (t.className = 'toast'), 3200);
 }
 
@@ -37,29 +35,23 @@ function showToast(msg, type = '') {
 function setupCopy(btnId, fieldId) {
   const btn   = document.getElementById(btnId);
   const field = document.getElementById(fieldId);
-  const doCopy = () => {
+  const go = () => {
     const val = field.getAttribute('data-val') || field.textContent;
     navigator.clipboard.writeText(val).then(() => {
       btn.textContent = '¡Copiado!';
       btn.classList.add('copied');
-      setTimeout(() => {
-        btn.textContent = 'Copiar';
-        btn.classList.remove('copied');
-      }, 2000);
+      setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2000);
     });
   };
-  btn.addEventListener('click', doCopy);
-  field.addEventListener('click', doCopy);
+  btn.addEventListener('click', go);
+  field.addEventListener('click', go);
 }
 
-/* ── Main page population ───────────────────── */
+/* ── Poblar página principal ────────────────── */
 async function enterMain() {
   const user = getCurrentUser();
-
-  // Username
   document.getElementById('display-username').textContent = user.display_name;
 
-  // Referral
   const link = `${SITE_URL}?ref=${user.referral_code}`;
   const lEl  = document.getElementById('ref-link');
   lEl.textContent = link;
@@ -69,20 +61,15 @@ async function enterMain() {
   cEl.textContent = user.referral_code;
   cEl.setAttribute('data-val', user.referral_code);
 
-  // Random letters on boxes
   setRandomLetters();
-
-  // Load async data
   await Promise.all([refreshReferralCount(), loadWordsHistory()]);
-
-  // Realtime subscription
   dbSubscribeWords(word => addWordChip(word, true));
 
   showPage('page-main');
   showLoader(false);
 }
 
-/* ── Referral count ─────────────────────────── */
+/* ── Referidos ──────────────────────────────── */
 async function refreshReferralCount() {
   const user = getCurrentUser();
   if (!user) return;
@@ -91,17 +78,15 @@ async function refreshReferralCount() {
   document.getElementById('stat-referral-big').textContent  = n;
 }
 
-/* ── Words history ──────────────────────────── */
+/* ── Historial palabras ─────────────────────── */
 async function loadWordsHistory() {
   const words = await dbGetWordsHistory();
   const grid  = document.getElementById('words-grid');
-
   if (words.length === 0) {
     grid.innerHTML = '<span class="words-empty">Aún no hay combinaciones registradas.</span>';
     updateWordsCount(0);
     return;
   }
-
   grid.innerHTML = '';
   words.forEach(w => addWordChip(w, false));
 }
@@ -111,13 +96,11 @@ function addWordChip(word, isNew) {
   const empty = grid.querySelector('.words-empty');
   if (empty) empty.remove();
   if (grid.querySelector(`[data-word="${word}"]`)) return;
-
   const chip = document.createElement('div');
-  chip.className  = 'word-chip' + (isNew ? ' new-word' : '');
+  chip.className    = 'word-chip' + (isNew ? ' new-word' : '');
   chip.dataset.word = word;
   chip.textContent  = word;
   grid.prepend(chip);
-
   if (isNew) setTimeout(() => chip.classList.remove('new-word'), 600);
   updateWordsCount(grid.querySelectorAll('.word-chip').length);
 }
@@ -126,19 +109,27 @@ function updateWordsCount(n) {
   document.getElementById('words-count-badge').textContent = `${n} formadas`;
 }
 
-/* ── Referral param on load ─────────────────── */
+/* ── Leer ?ref= de la URL ───────────────────── */
 function checkRefParam() {
   const ref = new URLSearchParams(window.location.search).get('ref');
   if (ref) {
-    sessionStorage.setItem('fp_ref', ref);
-    history.replaceState(null, '', window.location.origin + window.location.pathname);
+    sessionStorage.setItem('fp_ref', ref.toUpperCase());
+    // Limpiar URL sin recargar
+    const clean = SITE_URL + '/';
+    history.replaceState(null, '', clean);
+
+    // Pre-rellenar campo de código si está en la pantalla de registro
+    const codeInput = document.getElementById('reg-ref-code');
+    if (codeInput) codeInput.value = ref.toUpperCase();
+
+    // Cambiar al tab de registro automáticamente
+    if (window.switchAuthTab) window.switchAuthTab(1);
   }
 }
 
 /* ── Init ───────────────────────────────────── */
 async function init() {
   showLoader(true);
-  checkRefParam();
 
   try {
     const saved = localStorage.getItem('fp_user');
@@ -156,11 +147,14 @@ async function init() {
     localStorage.removeItem('fp_user');
   }
 
+  // Verificar ref DESPUÉS de que los tabs estén inicializados
+  setTimeout(checkRefParam, 100);
+
   showLoader(false);
   showPage('page-auth');
 }
 
-/* ── Button events ──────────────────────────── */
+/* ── Eventos de página principal ────────────── */
 document.getElementById('btn-form-word').addEventListener('click', () => {
   if (!getCurrentUser()) return;
   if (isSpinning) { showToast('Espera a que termine la animación.'); return; }
@@ -170,5 +164,5 @@ document.getElementById('btn-form-word').addEventListener('click', () => {
 setupCopy('btn-copy-link', 'ref-link');
 setupCopy('btn-copy-code', 'ref-code');
 
-/* ── Start ──────────────────────────────────── */
+/* ── Arrancar ───────────────────────────────── */
 init();

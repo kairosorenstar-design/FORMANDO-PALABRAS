@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════
-   GAME — Wait Flow · Countdown · Reveal
+   GAME — Flujo de espera · Reveal
    js/game.js
 ═══════════════════════════════════════════════ */
 
@@ -7,22 +7,20 @@ let waitTimer   = null;
 let pendingWord = null;
 let isSpinning  = false;
 
-/* ── Helpers ────────────────────────────────── */
 function randomLetter() {
   return LETTERS[Math.floor(Math.random() * 26)];
 }
 
 function generateWord() {
-  return [0, 1, 2, 3].map(() => randomLetter()).join('');
+  return [0,1,2,3].map(() => randomLetter()).join('');
 }
 
 function setRandomLetters() {
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < 4; i++)
     document.getElementById(`box-${i}`).textContent = randomLetter();
-  }
 }
 
-/* ── Step dots builder ──────────────────────── */
+/* ── Step dots ──────────────────────────────── */
 function buildStepDots(active) {
   const wrap = document.getElementById('wait-steps');
   wrap.innerHTML = '';
@@ -31,7 +29,6 @@ function buildStepDots(active) {
     dot.className = 'wait-step-dot' +
       (i < active ? ' done' : i === active ? ' active' : '');
     wrap.appendChild(dot);
-
     if (i < TOTAL_STEPS) {
       const line = document.createElement('div');
       line.className = 'wait-step-line' + (i < active ? ' done' : '');
@@ -49,40 +46,32 @@ function startWaitFlow() {
 function showWaitStep(step) {
   showPage('page-wait');
   buildStepDots(step);
-
   document.getElementById('wait-step-label').textContent = `Paso ${step} de ${TOTAL_STEPS}`;
   document.getElementById('wait-status').textContent =
     step < TOTAL_STEPS ? 'procesando · por favor espera' : 'finalizando · casi listo';
 
   startCountdown(STEP_SECS, () => {
-    if (step < TOTAL_STEPS) {
-      showWaitStep(step + 1);
-    } else {
-      showPage('page-main');
-      revealWord(pendingWord);
-    }
+    if (step < TOTAL_STEPS) showWaitStep(step + 1);
+    else { showPage('page-main'); revealWord(pendingWord); }
   });
 }
 
-/* ── Countdown timer ────────────────────────── */
+/* ── Countdown ──────────────────────────────── */
 function startCountdown(secs, onDone) {
-  let rem = secs;
-
+  let rem      = secs;
   const numEl  = document.getElementById('ring-num');
   const ringEl = document.getElementById('ring-fill');
   const barEl  = document.getElementById('wait-bar-fill');
-  const C      = 2 * Math.PI * 80; // circumference r=80 → ≈502.65
+  const C      = 2 * Math.PI * 80;
 
-  // Reset without transition
   numEl.textContent = rem;
   ringEl.style.transition = 'none';
   ringEl.style.strokeDashoffset = '0';
-  barEl.style.transition = 'none';
+  barEl.style.transition  = 'none';
   barEl.style.width = '0%';
 
   if (waitTimer) clearInterval(waitTimer);
 
-  // Apply transition after paint
   requestAnimationFrame(() => requestAnimationFrame(() => {
     ringEl.style.transition = `stroke-dashoffset ${secs}s linear`;
     ringEl.style.strokeDashoffset = C;
@@ -93,27 +82,18 @@ function startCountdown(secs, onDone) {
   waitTimer = setInterval(() => {
     rem--;
     numEl.textContent = rem;
-    if (rem <= 0) {
-      clearInterval(waitTimer);
-      onDone();
-    }
+    if (rem <= 0) { clearInterval(waitTimer); onDone(); }
   }, 1000);
 }
 
-/* ── Reveal animation ───────────────────────── */
+/* ── Reveal ─────────────────────────────────── */
 async function revealWord(word) {
   if (isSpinning) return;
   isSpinning = true;
+  const boxes = [0,1,2,3].map(i => document.getElementById(`box-${i}`));
 
-  const boxes = [0, 1, 2, 3].map(i => document.getElementById(`box-${i}`));
+  boxes.forEach(b => { b.textContent = randomLetter(); b.classList.add('spinning'); });
 
-  // Spin all boxes
-  boxes.forEach(b => {
-    b.textContent = randomLetter();
-    b.classList.add('spinning');
-  });
-
-  // Rapid random cycling
   let n = 0;
   const si = setInterval(() => {
     boxes.forEach(b => b.textContent = randomLetter());
@@ -133,7 +113,6 @@ async function revealStaggered(boxes, letters) {
     setTimeout(() => boxes[i].classList.remove('reveal'), 600);
   }
 
-  // Save to DB
   showLoader(true);
   try {
     const saved = await dbSaveWord(pendingWord, getCurrentUser().id);
@@ -147,7 +126,6 @@ async function revealStaggered(boxes, letters) {
     showToast('Error guardando la combinación.', 'error');
   }
   showLoader(false);
-
   isSpinning  = false;
   pendingWord = null;
 }
